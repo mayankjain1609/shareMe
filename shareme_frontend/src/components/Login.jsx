@@ -1,61 +1,66 @@
-import React from 'react'
-import { FcGoogle } from 'react-icons'
-import { json, useNavigate } from 'react-router-dom'
-import shareVideo from '../assets/share.mp4'
-import logo from '../assets/logowhite.png'
-import { GoogleOAuthProvider } from '@react-oauth/google';
+import React from 'react';
 import { GoogleLogin } from '@react-oauth/google';
-import jwt_decode from "jwt-decode";
-import {client} from '../client'
+import { useNavigate } from 'react-router-dom';
+
+import shareVideo from '../assets/share.mp4';
+import logo from '../assets/logowhite.png';
+import { getUserDataFromToken } from '../utilities';
+import { client } from '../client';
+
 const Login = () => {
-    const navigate = useNavigate();
-    return (
-        <div className='flex justify-start item-center flex-col h-screen'>
-            <div className="relative w-full h-full">
-                <video
-                    src={shareVideo}
-                    type='video/mp4'
-                    loop
-                    controls={false}
-                    muted
-                    autoPlay
-                    className=' w-full h-full object-cover'
-                />
-                <div className="absolute flex flex-col justify-center item-center top-0 left-0 bottom-0 right-0 bg-blackOverlay">
-                    <div className="p-5 flex justify-center">
-                        <img src={logo} width='130px' alt="logo" />
-                    </div>
-                    <div className="shadow-2xl w-48 mx-auto">
-                        <GoogleOAuthProvider clientId={process.env.REACT_APP_GOOGLE_API_TOKEN} >
-                            <GoogleLogin
-                                onSuccess={(credentialResponse) => {
-                                    // console.log(credentialResponse);
-                                    var decoded = jwt_decode(credentialResponse.credential);
-                                    // console.log(decoded);
-                                    localStorage.setItem('user', JSON.stringify(decoded));
-                                    const doc = {
-                                        _id: decoded.sub,
-                                        _type: 'user',
-                                        userName: decoded.name,
-                                        image: decoded.picture
-                                    }
-                                    client.createIfNotExists(doc).then(()=>{
-                                        navigate("/",{replace:true});
-                                    }) 
-                                }}
-                                type='standard'
-                                width='190'
 
-                                onError={() => {
-                                    console.log('Login Failed');
-                                }}
-                            />;
-                        </GoogleOAuthProvider>;
-                    </div>
-                </div>
-            </div>
+  const navigate = useNavigate();
+
+  const googleLoginSuccess = async ({ credential }) => {
+    try {
+      localStorage.setItem('profile', credential);
+      const { name, id, imageUrl } = getUserDataFromToken(credential);
+      const doc = {
+        _id: id,
+        _type: 'user',
+        userName: name,
+        image: imageUrl,
+      };
+      client.createIfNotExists(doc)
+        .then(() => {
+          navigate('/', { replace: true });
+        });
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const googleLoginError = (error) => {
+    console.error("Google Sign In was not successful. Try again later. Details: ", error);
+  };
+
+  return (
+    <div className='flex justify-start items-center flex-col h-screen'>
+      <div className='relative w-full h-full'>
+        <video
+          src={ shareVideo }
+          type="video/mp4"
+          loop
+          controls={ false }
+          muted
+          autoPlay
+          className='w-full h-full object-cover'
+        />
+        <div className='absolute flex flex-col justify-center items-center top-0 right-0 left-0 bottom-0 bg-blackOverlay'>
+          <div className='p-5'>
+            <img src={ logo } width="130px" alt='logo' />
+          </div>
+          <div className='shadow-2xl'>
+            <GoogleLogin
+              onSuccess={googleLoginSuccess}
+              onError={googleLoginError}
+              useOneTap
+            />
+          </div>
         </div>
-    )
-}
+      </div>
+    </div>
+  );
+};
 
-export default Login
+export default Login;

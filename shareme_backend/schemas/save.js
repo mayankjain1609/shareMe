@@ -1,17 +1,17 @@
-export default{
-    name:'save',
-    title:'Save',
-    type:'document',
-    fields:[
+export default {
+    name: 'save',
+    title: 'Save',
+    type: 'document',
+    fields: [
         {
-            name:'postedBy',
-            title:'PostedBy',
-            type:'postedBy'
+            name: 'postedBy',
+            title: 'PostedBy',
+            type: 'postedBy',
         },
         {
-            name:'userId',
-            title:'UserId',
-            type:'string'
-        }
+            name: 'userId',
+            title: 'UserID',
+            type: 'string',
+        },
     ]
-}
+};
